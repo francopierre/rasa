@@ -17,10 +17,6 @@ jobs:
       - name: Checkout git repository 🕝
         uses: actions/checkout@v3
 
-#      - name: Run script
-#        run: |
-#          ./scripts/prepare_nightly_release.py
-
       - name: Compose tag name
         id: set_tagname
         run: |
@@ -31,7 +27,7 @@ jobs:
           LATEST_RASA_MINOR=$(python -c "import sys; import os; sys.path.append('${{ github.workspace }}/rasa'); from rasa.version import __version__; print(__version__)")
           echo "Current RASA version: ${LATEST_RASA_MINOR}"
 
-          LATEST_NIGHTLY_VERSION=$(echo ${LATEST_RASA_MINOR} | awk -F. '{$(NF-1) = $(NF-1) + 1;} {$(NF) = 0;} 1' | sed 's/ /./g')
+          LATEST_NIGHTLY_VERSION=$(echo ${LATEST_RASA_MINOR})
 
           echo "New nightly release version: ${LATEST_NIGHTLY_VERSION}"
 
@@ -50,7 +46,6 @@ jobs:
               repo: context.repo.repo,
               ref: "refs/tags/${{ steps.set_tagname.outputs.tag }}",
               sha: context.sha
-              description: "development build for internal use"
             })
 
 
@@ -96,5 +91,5 @@ jobs:
           user: "github-ci"
           password: ${{ secrets.PYPI_PASSWORD }}
           repository_url: "https://pypi.rasa.com/simple/"
-          packages_dir: ${{ format('{0}/dist', github.workspace) }}
+          packages_dir: ${{ format('{0}/dist', needs.run_script_and_tag_nightly_release.tag_name) }}
 
